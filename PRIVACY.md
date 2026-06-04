@@ -16,7 +16,7 @@ When a Managed Application install runs inside the customer's Azure subscription
 |---|---|---|
 | Customer's Power BI query results (workspace data, datasets, DAX query outputs) | In-process at the connector's Container App for the duration of one request, then discarded | Only the calling user (via On-Behalf-Of authorisation) |
 | Audit log of tool invocations | Customer's own Azure Log Analytics workspace | Whoever the customer grants access to in their own subscription |
-| Connector configuration (pre-built analyses, reconciliation rules, tenant-admin allowlist, AI Context) | Customer's own Azure SQL serverless database | Same — customer-controlled |
+| Connector configuration (analyses, reconciliation rules, tenant-admin allowlist, AI Context — all customer-authored via the admin UI after install) | Customer's own Azure SQL serverless database | Same — customer-controlled |
 | OAuth client certificate + private key | Customer's own Azure Key Vault | Same — customer-controlled |
 
 The connector binary running in the Container App is the same image published by Expecta to the customer's per-install Azure Container Registry at install time. After install, the image is owned and pulled from within the customer's tenant.

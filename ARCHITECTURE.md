@@ -71,7 +71,7 @@ No data is held in the connector beyond the immediate request lifecycle. There i
 ## What stays in your tenant
 
 - All audit events (tool invocations, OAuth handshakes, DAX queries) — they only ever land in your Log Analytics.
-- All configuration (pre-built analyses, reconciliation rules, AI Context, admin allowlist) — they only ever live in your config DB.
+- All configuration (analyses, reconciliation rules, AI Context, admin allowlist) — they only ever live in your config DB. The offer ships the runtime + admin UI; the analyses and rules are configured post-install via the admin UI.
 - All OAuth credentials (cert + private key + thumbprint) — they only ever live in your Key Vault.
 - The connector image binary — copied to your ACR at install time, pulled from your ACR at runtime.
 - Power BI access tokens — never persisted; held in-process for the duration of one OBO exchange and discarded.

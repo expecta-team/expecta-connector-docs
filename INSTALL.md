@@ -9,7 +9,7 @@ You'll need:
 - **An Azure subscription** in the tenant where Power BI lives, with enough quota for a small set of resources (one Container App, one Key Vault, one Basic-tier Azure Container Registry, one serverless Azure SQL database, optionally one Log Analytics workspace).
 - **Owner or User Access Administrator** on the subscription, to create the connector's Entra app registration and grant role assignments. The wizard validates this up front.
 - **A user with Power BI access** (`Dataset.Read.All` delegated, granted through Power BI workspace membership) — typically yourself. The connector authenticates each query under the calling user's identity, so users who can't see a workspace in Power BI Web won't see it through the connector either.
-- **An email** for the first tenant admin who'll log into the connector's `/admin` web UI to configure pre-built analyses, reconciliation rules, and AI context.
+- **An email** for the first tenant admin who'll log into the connector's `/admin` web UI to configure analyses, reconciliation rules, and AI context.
 
 ## What the wizard collects
 
@@ -45,7 +45,7 @@ The custom-domain DNS, TLS certificate, and Container Apps domain binding are po
 Inside the managed resource group, the install provisions:
 
 - **Container App** running the connector image. System-assigned managed identity has narrow scopes: pull from the per-install ACR, read secrets from Key Vault, read/write the config database.
-- **Azure SQL serverless database** holding configuration (pre-built analyses, reconciliation rules, AI context, tenant admin allowlist) and audit metadata. AAD-only auth, no SQL passwords.
+- **Azure SQL serverless database** holding configuration (analyses, reconciliation rules, AI context, tenant admin allowlist) and audit metadata. AAD-only auth, no SQL passwords.
 - **Key Vault** holding the OAuth client certificate, the database connection string, and any rotation-managed secrets. RBAC mode, soft-delete + purge-protection enabled.
 - **Azure Container Registry (Basic tier)** holding a copy of the connector image, copied from Expecta's publisher registry at install time so future container pulls never leave your tenant.
 - **Entra ID application registration** for OAuth client authentication and On-Behalf-Of token exchange.
@@ -65,7 +65,7 @@ The post-install management blade in the Azure Portal shows:
 The first thing to do is sign into `/admin` as the tenant-admin email you set in the wizard, and seed the connector's content:
 
 1. **Connect a workspace** — add the Power BI workspace + report + dataset that the connector should expose.
-2. **Add pre-built analyses** (optional) — the standard templates ship with the connector image; you can override or add custom ones from `/admin/topics`.
+2. **Configure analyses** (optional) — the connector ships the runtime + admin UI; analyses are configured per customer via the `/admin` UI after install. You can author them yourself or work with Expecta engineering on a separate engagement.
 3. **Add reconciliation rules** (optional) — give the connector "ground-truth" reference values so it can flag when its answers diverge from your audited numbers.
 4. **Add AI Context** (optional) — domain-specific terminology, KPI definitions, business glossary that help the connector answer in your company's language.
 
