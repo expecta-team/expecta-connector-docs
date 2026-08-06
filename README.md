@@ -10,6 +10,7 @@ This site is the customer-facing documentation. Source code and release notes ar
 - **Per-user authorisation.** Every query is performed using the calling user's own Power BI permissions via On-Behalf-Of (OBO). The connector cannot see data the user can't already see in Power BI.
 - **Modern auth posture.** Certificate-based OAuth client authentication; no long-lived client secrets.
 - **Tenant-scoped audit log.** Every tool invocation lands in *your* Log Analytics workspace, with the calling user's identity, the workspace and dataset touched, and the outcome.
+- **Interactive dashboards, in the chat.** On clients that support it, answers can render as live, refreshable dashboards inside the conversation — not just text. A user can also have one built against their own model and save it, then reopen it later by name. Saved dashboards run under that user's own Power BI permissions, like every other query.
 - **Zero-ops install.** A few wizard fields, ~10 minutes, no post-install steps for the common path.
 
 ## Read next
