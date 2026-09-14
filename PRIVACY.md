@@ -1,8 +1,12 @@
-# Privacy policy — Expecta Connector
+# Privacy policy — Expecta Connector (Azure Managed Application)
 
-*Effective 2026-06-04. Maintained by Expecta. Source of truth: this file in [github.com/expecta-team/expecta-connector-docs](https://github.com/expecta-team/expecta-connector-docs).*
+*Effective 2026-06-04. Scope clarified 2026-09-14. Maintained by Expecta. Source of truth: this file in [github.com/expecta-team/expecta-connector-docs](https://github.com/expecta-team/expecta-connector-docs).*
 
 This privacy policy describes how the **Expecta Connector** (the Azure Managed Application offer published by Expecta on the Azure Marketplace) handles customer data. It applies to **customer organisations who install the Managed Application offer into their own Azure subscription**.
+
+> **This policy covers the Managed Application only.** It applies when the connector runs **inside your own Azure subscription**, installed from the Azure Marketplace — the model in which no customer data reaches Expecta at all.
+>
+> If instead your organisation uses the **hosted service Expecta operates at `expecta.app`**, connected to an assistant such as Claude or Microsoft Copilot, the policy that applies to you is [PRIVACY-HOSTED.md](PRIVACY-HOSTED.md). The two differ in substance, not just in wording — do not rely on this one for the hosted service.
 
 ## Summary
 
@@ -16,7 +20,7 @@ When a Managed Application install runs inside the customer's Azure subscription
 |---|---|---|
 | Customer's Power BI query results (workspace data, datasets, DAX query outputs) | In-process at the connector's Container App for the duration of one request, then discarded | Only the calling user (via On-Behalf-Of authorisation) |
 | Audit log of tool invocations | Customer's own Azure Log Analytics workspace | Whoever the customer grants access to in their own subscription |
-| Connector configuration (analyses, reconciliation rules, tenant-admin allowlist, AI Context — all customer-authored via the admin UI after install) | Customer's own Azure SQL serverless database | Same — customer-controlled |
+| Connector configuration (analyses, reconciliation rules, tenant-admin allowlist, Context — all customer-authored via the admin UI after install) | Customer's own Azure SQL serverless database | Same — customer-controlled |
 | OAuth client certificate + private key | Customer's own Azure Key Vault | Same — customer-controlled |
 
 The connector binary running in the Container App is the same image published by Expecta to the customer's per-install Azure Container Registry at install time. After install, the image is owned and pulled from within the customer's tenant.
@@ -27,7 +31,7 @@ Expecta has **no standing read or write access** to any installed instance of th
 
 - **Production runtime** — Expecta does not hold any credential, key, certificate, or service-principal access to any customer's connector deployment, Azure SQL database, Key Vault, Container App, or Log Analytics workspace. The Entra ID application registration created during install lives in the customer's tenant and is owned by the customer's tenant admin.
 - **Telemetry** — the connector emits no telemetry to Expecta-controlled endpoints. Application logs land in the customer's Container Apps log destination; audit events land in the customer's Log Analytics workspace.
-- **Updates** — when Expecta publishes a new connector version through the Marketplace, the customer initiates the update on their side. The update step uses a short-lived publisher-issued Azure Container Registry token (valid up to one year, scoped read-only to the connector image repository) to copy the new image into the customer's own Container Registry. The token is used only during the install/update step itself; Expecta retains no ongoing read access to the customer's resources via this mechanism.
+- **Updates** — when Expecta publishes a new connector version through the Marketplace, the customer initiates the update on their side. Copying the new image into the customer's own container registry uses a credential issued for that step alone; Expecta retains no ongoing access to the customer's resources through it.
 - **Diagnostics** — if a customer raises a support ticket and chooses to share log excerpts, those are sent through the customer-initiated support channel (email or shared issue). Expecta does not pull diagnostics on its own.
 
 ## Personal data
@@ -55,13 +59,15 @@ The Managed Application installs all of its resources into the Azure region the 
 
 ## Cookies, web tracking, and the Connector
 
-The Marketplace listing pages on `azuremarketplace.microsoft.com` use cookies governed by Microsoft's privacy policy, not Expecta's. The Connector's own admin web UI (`/admin`) served from a customer's installed instance uses session cookies for the admin login flow only — these cookies live entirely in the customer's tenant. No third-party trackers, advertising pixels, or analytics scripts are present in any Expecta-served code.
+The Marketplace listing pages on `azuremarketplace.microsoft.com` use cookies governed by Microsoft's privacy policy, not Expecta's. The Connector's own admin web UI (`/admin`) served from a customer's installed instance sets one session cookie for the admin login flow only — it lives entirely in the customer's tenant. No trackers, advertising pixels or analytics scripts are present in any Expecta-served code.
+
+One third-party request is worth naming, and it is confined to a single place: the **browser-based administration pages** (`/admin`) load their web fonts from Google's font service, so a browser opening those pages makes a request to Google and Google sees its IP address. Google receives nothing else — no query, no figure, no identity. **The dashboards rendered inside your assistant do not make this request**, and everything else the interface needs — charts, tables, scripts — is served by the connector itself. We will serve the fonts locally on request.
 
 ## Sub-processors
 
-Expecta uses no sub-processors that access customer-tenant data, because no Expecta-side service ever accesses customer-tenant data.
+A sub-processor is a third party that would handle your data on Expecta's behalf. **For the Managed Application there are none** — no Expecta-side service reaches your data at all, so there is nothing to pass on.
 
-Sub-processors that touch publisher-side metadata only (Marketplace transaction routing) are governed by Microsoft's commercial marketplace publisher agreement.
+Microsoft handles the Marketplace purchase itself, under its own commercial marketplace publisher agreement rather than this policy.
 
 ## Contact
 
