@@ -57,7 +57,7 @@ The workspace + dataset binding hasn't been added to the connector's config DB y
 
 Several possible causes:
 - **SQL config DB auto-paused.** Serverless SQL pauses after 60 minutes of inactivity; the first query after a long idle period takes ~30 seconds to resume the DB. Re-run the query after the resume completes.
-- **Power BI XMLA endpoint slow.** The query may be expensive — check the audit log for the actual DAX text and run it directly in Power BI Desktop or DAX Studio to validate. Heavy queries may need to be rewritten or pre-materialised as a measure.
+- **Power BI is slow to answer.** The underlying query may be expensive. The audit log records which report and dataset were reached and how long the pattern has persisted; reproduce the same question against the model in Power BI Desktop to see where the time goes. Heavy queries may need rewriting or pre-materialising as a measure.
 - **Container App scaling event.** If you've enabled scale-to-zero, the first request after idle warms up a new container (~3–5 seconds). Subsequent requests are fast.
 
 ### Specific user can use the connector through their LLM client but the `/admin` UI returns 403
@@ -76,10 +76,10 @@ If you've enabled a Container Apps cleanup policy that purges old revisions, an 
 
 | What you want to know | Where to look |
 |---|---|
-| Is the connector running? | Azure Portal → Container App → "Logs" tab; `ContainerAppConsoleLogs` table in your Log Analytics workspace |
-| Why is a tool call failing? | Log Analytics → `AppTraces` → filter on `Properties.event == "tool.invoke"` and `Properties.outcome == "error"` |
-| Did OAuth complete for a specific user? | Log Analytics → filter on `Properties.event startswith "oauth"` and `Properties.user_oid == "<oid>"` |
-| What DAX did the connector send to Power BI? | Log Analytics → filter on `Properties.event == "dax.query"` |
+| Is the connector running? | Azure Portal → Container App → "Logs" tab, or the connector's container logs in your Log Analytics workspace |
+| Why is a question failing? | Your Log Analytics workspace — find the failed request by the reference number shown with the error |
+| Did sign-in complete for a specific person? | Your Log Analytics workspace — sign-in entries record each attempt and its outcome |
+| What did the connector ask Power BI for? | Your Log Analytics workspace records each data request and how many rows came back. The detail of the request itself is not stored unless you enable it — ask us how |
 | Connector's current health endpoint? | `https://<connector-fqdn>/health` returns 200 OK + version |
 | OAuth metadata? | `https://<connector-fqdn>/.well-known/oauth-protected-resource` |
 

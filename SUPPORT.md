@@ -17,7 +17,7 @@ For technical issues, the more of the following you can include, the faster we c
 - **Region** — where the install is deployed.
 - **Connector version** — visible at `https://<connector-fqdn>/health`.
 - **Time window** — when the issue started, in UTC.
-- **Audit log excerpt** — relevant rows from your Log Analytics workspace (`AppTraces` table, filtered by `req_id` or time window).
+- **Audit log excerpt** — the relevant entries from your Log Analytics workspace, found by the reference number shown with the error or by the time it happened.
 - **Reproduction steps** — what tool was called, with what inputs, expected vs actual behaviour.
 
 Do **not** include:

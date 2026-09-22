@@ -26,7 +26,7 @@ Day-to-day: you don't need to do anything until the 3-year mark approaches. Micr
 
 ## Scaling
 
-The default install runs **one Container App replica** (min=1, max=1). For most installs this is sufficient — the connector spends most of its time waiting on Power BI XMLA responses, not on CPU. If you experience latency under high concurrent load:
+The default install runs **one Container App replica** (min=1, max=1). For most installs this is sufficient — the connector spends most of its time waiting on Power BI, not on CPU. If you experience latency under high concurrent load:
 
 1. **Vertical first.** Bump CPU/memory on the Container App revision: Container App → "Containers" → edit → increase resources from 0.5 vCPU / 1.0 Gi → 1.0 vCPU / 2.0 Gi.
 2. **Horizontal only if vertical isn't enough.** The connector holds some session state in-memory; multi-replica scaling requires switching to a shared session backend (Redis or stateless JWT state tokens). Contact Expecta engineering before raising the replica count.
@@ -62,34 +62,9 @@ The "Metrics" tab in the Managed Application blade shows the headline numbers:
 - **CPU and memory utilisation** — for capacity planning.
 - **Replica count** — should be 1 in the default config.
 
-For deeper monitoring, query the audit Log Analytics workspace directly. Sample KQL:
+For anything deeper, your Log Analytics workspace holds the connector's own audit records — every question asked, by whom, against which report, and whether it succeeded. That is where to look for usage patterns over time, which questions are failing, or the history behind a particular support reference number.
 
-```kql
-// Last 100 tool invocations with outcome
-AppTraces
-| where AppRoleName == "powerbi-online-mcp"
-| where Properties.event == "tool.invoke"
-| project TimeGenerated,
-          tool = Properties.tool_name,
-          user_oid = Properties.user_oid,
-          workspace = Properties.workspace_id,
-          outcome = Properties.outcome,
-          duration_ms = Properties.duration_ms
-| top 100 by TimeGenerated desc
-```
-
-```kql
-// Error rate per tool over the last day
-AppTraces
-| where AppRoleName == "powerbi-online-mcp"
-| where Properties.event == "tool.invoke"
-| where TimeGenerated > ago(1d)
-| summarize total = count(),
-            errors = countif(Properties.outcome == "error")
-            by tool = tostring(Properties.tool_name)
-| extend error_rate = round(100.0 * errors / total, 2)
-| order by error_rate desc
-```
+Ask us if you would like ready-made queries for your reporting or SIEM tooling; we will supply ones matching your deployment.
 
 For installs feeding into a SOC's SIEM, see the "Audit log routing" section in your tenant's overall observability runbook.
 

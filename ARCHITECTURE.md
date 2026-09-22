@@ -48,7 +48,7 @@ When an LLM client calls the connector's MCP endpoint, the request carries an En
 
 1. Validates the token (signature, expiry, tenant — must match your tenant allowlist).
 2. Uses the [On-Behalf-Of flow](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow) to exchange the user's token for a Power BI access token on the same user's behalf.
-3. Calls the Power BI XMLA endpoint to execute DAX queries using the user's permissions.
+3. Calls the Power BI REST API to run queries using that person's own permissions.
 
 The practical consequence: **a user can only see the workspaces and datasets that user can already see in Power BI Web.** The connector has no privilege escalation path — it cannot read a dataset the user lacks access to, even if a malicious prompt tries to coerce it.
 
@@ -60,10 +60,10 @@ A typical "what were Q3 net sales?" query:
 2. LLM client decides which connector tool to call (`query`, `analyze`, `get_report`, etc.) and sends the call to the connector's MCP endpoint with the user's Bearer token.
 3. Connector validates the token, looks up the workspace/dataset binding in the config DB.
 4. Connector performs OBO exchange against Entra ID to get a Power BI access token *as the user*.
-5. Connector calls Power BI XMLA with the OBO token, runs the DAX query.
+5. Connector calls the Power BI REST API with that token and runs the query.
 6. Power BI returns rows.
 7. Connector reshapes into a structured MCP response.
-8. Audit event lands in your Log Analytics workspace: `req_id`, user `oid`, tool name, workspace+dataset, outcome, latency.
+8. An audit entry lands in your Log Analytics workspace: who asked, what was asked for, which report and dataset, the outcome, and a reference number.
 9. Response goes back to the LLM client; LLM client renders the natural-language answer.
 
 No data is held in the connector beyond the immediate request lifecycle. There is no caching of query results outside a short in-process TTL for hot-path metadata.
