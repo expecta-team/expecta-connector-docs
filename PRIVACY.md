@@ -27,11 +27,11 @@ The connector binary running in the Container App is the same image published by
 
 ## What Expecta sees about customer installs
 
-Expecta has **no standing read or write access** to any installed instance of the connector or its data:
+Expecta holds a **Contributor** role on the managed resource group of each installed instance, granted by Azure at install time and held by a single Microsoft Entra group whose membership is limited to Expecta staff responsible for the connector. It is scoped to that resource group and nothing else in your subscription, and it exists so that Expecta can ship you a new connector version and recover an install that cannot recover itself. What it does **not** reach:
 
-- **Production runtime** — Expecta does not hold any credential, key, certificate, or service-principal access to any customer's connector deployment, Azure SQL database, Key Vault, Container App, or Log Analytics workspace. The Entra ID application registration created during install lives in the customer's tenant and is owned by the customer's tenant admin.
+- **Your data** — the access is to Azure resources, not to your business data. The connector reads Power BI as the signed-in user, through that user's own token and their own permissions; Expecta holds no credential that returns your Power BI data. Secrets are held in your own Key Vault under Azure role-based access control and are read at runtime by the connector's managed identity. The Entra ID application registration created during install lives in your tenant and is owned by your tenant admin.
 - **Telemetry** — the connector emits no telemetry to Expecta-controlled endpoints. Application logs land in the customer's Container Apps log destination; audit events land in the customer's Log Analytics workspace.
-- **Updates** — when Expecta publishes a new connector version through the Marketplace, the customer initiates the update on their side. Copying the new image into the customer's own container registry uses a credential issued for that step alone; Expecta retains no ongoing access to the customer's resources through it.
+- **Updates** — your connector runs an image held in your own container registry. Nothing Expecta publishes reaches a running install on its own; a new version has to be copied in and a new revision started, which is what the Contributor role is for. Every such action is recorded in your Azure Activity Log, attributed to the individual who performed it.
 - **Diagnostics** — if a customer raises a support ticket and chooses to share log excerpts, those are sent through the customer-initiated support channel (email or shared issue). Expecta does not pull diagnostics on its own.
 
 ## Personal data
