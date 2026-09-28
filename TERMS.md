@@ -1,6 +1,6 @@
 # Terms of service — Expecta Connector
 
-*Effective 2026-09-14. Maintained by Expecta. Source of truth: this file in [github.com/expecta-team/expecta-connector-docs](https://github.com/expecta-team/expecta-connector-docs).*
+*Effective 2026-09-14. Updated 2026-09-28 (Managed Application updates are now automatic). Maintained by Expecta. Source of truth: this file in [github.com/expecta-team/expecta-connector-docs](https://github.com/expecta-team/expecta-connector-docs).*
 
 These terms describe how the Expecta Connector may be used. They apply alongside the agreement between your organisation and Expecta; **where the two differ, your agreement governs.**
 
@@ -37,9 +37,9 @@ Separately, each person using the connector needs their own Microsoft licences �
 
 The Managed Application is deployed into your Azure subscription, into a managed resource group. Azure grants Expecta a **Contributor** role on that resource group, and only on that resource group. The grant is held by a single Microsoft Entra group, “Expecta Connector Maintainers”, whose membership is limited to Expecta staff responsible for the connector.
 
-**What it is for.** Shipping you a new connector version, and recovering an install that cannot recover itself — for example, restoring administrator access when the first-admin record was not created at install time.
+**What it is for.** Recovering an install that cannot recover itself — for example, restoring administrator access if the first-admin record was not created after setup. New connector versions do not need it: they are installed by the update job inside your deployment (see “How updates reach your install”).
 
-**Why an update needs us.** Your connector runs an image held in your own container registry. A new version has to be copied in and a new revision started. That is a deliberate design choice: nothing we publish reaches your environment until that step is taken, so a change on our side can never alter a running install of yours without action.
+**How updates reach your install.** Your connector runs an image held in your own container registry. A job inside your deployment checks Expecta's registry every night. When a new version has been published, it copies the image into your registry, moves the connector to it, and checks that it is healthy; if the check fails, it returns to the previous version automatically. When nothing new has been published, it changes nothing. Every run and its outcome is recorded in your own Log Analytics workspace. The job reaches Expecta's registry with the registry access issued to your organisation; if that access is withdrawn, updates stop and your install keeps running the version it has.
 
 **What it does not grant.**
 
@@ -66,7 +66,7 @@ Do not:
 
 The hosted service is updated from time to time, which can briefly interrupt it. New capabilities are added and existing ones change; where a change affects how you use the connector, we will tell you. Any availability or response-time commitments are those set out in your agreement with Expecta.
 
-For the Managed Application, a new version does not reach your install by itself. Updates are applied by Expecta to your deployment, and appear in your Azure Activity Log — see “Expecta's access to your deployment”.
+For the Managed Application, new versions are installed automatically by the nightly update job inside your deployment, and each run is recorded in your Log Analytics workspace — see “How updates reach your install”. Updates keep your data and configuration as they are.
 
 ## Your data stays yours
 

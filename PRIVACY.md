@@ -1,6 +1,6 @@
 # Privacy policy — Expecta Connector (Azure Managed Application)
 
-*Effective 2026-06-04. Scope clarified 2026-09-14. Maintained by Expecta. Source of truth: this file in [github.com/expecta-team/expecta-connector-docs](https://github.com/expecta-team/expecta-connector-docs).*
+*Effective 2026-06-04. Scope clarified 2026-09-14. Updated 2026-09-28 (automatic updates, post-install setup, sign-in cookies). Maintained by Expecta. Source of truth: this file in [github.com/expecta-team/expecta-connector-docs](https://github.com/expecta-team/expecta-connector-docs).*
 
 This privacy policy describes how the **Expecta Connector** (the Azure Managed Application offer published by Expecta on the Azure Marketplace) handles customer data. It applies to **customer organisations who install the Managed Application offer into their own Azure subscription**.
 
@@ -10,7 +10,7 @@ This privacy policy describes how the **Expecta Connector** (the Azure Managed A
 
 ## Summary
 
-**No customer data is ever transmitted to or processed by Expecta.** The connector runs entirely inside the customer's Azure subscription; every byte of customer data (Power BI query results, audit events, configuration) stays inside the customer's tenant boundary.
+**No customer data is ever transmitted to or processed by Expecta.** The connector runs entirely inside the customer's Azure subscription. Audit events and configuration never leave the customer's tenant. Power BI query results leave it only as the answer returned to the AI assistant the user is working in (for example Claude), under that assistant provider's own terms — never to Expecta.
 
 ## What the connector handles
 
@@ -23,15 +23,15 @@ When a Managed Application install runs inside the customer's Azure subscription
 | Connector configuration (analyses, reconciliation rules, tenant-admin allowlist, Context — all customer-authored via the admin UI after install) | Customer's own Azure SQL serverless database | Same — customer-controlled |
 | OAuth client certificate + private key | Customer's own Azure Key Vault | Same — customer-controlled |
 
-The connector binary running in the Container App is the same image published by Expecta to the customer's per-install Azure Container Registry at install time. After install, the image is owned and pulled from within the customer's tenant.
+The connector binary running in the Container App is the image published by Expecta, copied into the customer's per-install Azure Container Registry at install time and, afterwards, by the nightly update job whenever a new version is published. The connector always runs from the customer's own registry.
 
 ## What Expecta sees about customer installs
 
-Expecta holds a **Contributor** role on the managed resource group of each installed instance, granted by Azure at install time and held by a single Microsoft Entra group whose membership is limited to Expecta staff responsible for the connector. It is scoped to that resource group and nothing else in your subscription, and it exists so that Expecta can ship you a new connector version and recover an install that cannot recover itself. What it does **not** reach:
+Expecta holds a **Contributor** role on the managed resource group of each installed instance, granted by Azure at install time and held by a single Microsoft Entra group whose membership is limited to Expecta staff responsible for the connector. It is scoped to that resource group and nothing else in your subscription, and it exists so that Expecta can recover an install that cannot recover itself. New versions no longer need it: they arrive through the install's own nightly update job (see Updates below). What it does **not** reach:
 
-- **Your data** — the access is to Azure resources, not to your business data. The connector reads Power BI as the signed-in user, through that user's own token and their own permissions; Expecta holds no credential that returns your Power BI data. Secrets are held in your own Key Vault under Azure role-based access control and are read at runtime by the connector's managed identity. The Entra ID application registration created during install lives in your tenant and is owned by your tenant admin.
+- **Your data** — the access is to Azure resources, not to your business data. The connector reads Power BI as the signed-in user, through that user's own token and their own permissions; Expecta holds no credential that returns your Power BI data. Secrets are held in your own Key Vault under Azure role-based access control and are read at runtime by the connector's managed identity. The Entra ID application registration is created after install by your own administrator, with their own rights, runs in your tenant and is owned by your tenant.
 - **Telemetry** — the connector emits no telemetry to Expecta-controlled endpoints. Application logs land in the customer's Container Apps log destination; audit events land in the customer's Log Analytics workspace.
-- **Updates** — your connector runs an image held in your own container registry. Nothing Expecta publishes reaches a running install on its own; a new version has to be copied in and a new revision started, which is what the Contributor role is for. Every such action is recorded in your Azure Activity Log, attributed to the individual who performed it.
+- **Updates** — your connector runs an image held in your own container registry. A job inside your install checks Expecta's registry every night: if a new version exists it copies it into your registry, moves the connector to it and checks it is healthy, rolling back automatically if not; otherwise it does nothing. Every run is recorded in your own Log Analytics workspace. This is a pull from your install; nothing about your data is sent. What Expecta's registry sees is that your install's registry access checked for, or downloaded, a version, and when.
 - **Diagnostics** — if a customer raises a support ticket and chooses to share log excerpts, those are sent through the customer-initiated support channel (email or shared issue). Expecta does not pull diagnostics on its own.
 
 ## Personal data
@@ -39,7 +39,7 @@ Expecta holds a **Contributor** role on the managed resource group of each insta
 The connector does not collect, process, or store personally identifiable information (PII) for any purpose other than user authentication:
 
 - **User authentication** — the calling user's Microsoft Entra ID access token is verified at each request to confirm the caller is in the customer's tenant allowlist. The token is held in memory for the duration of the request and discarded. The user's Object ID (`oid` claim) is written to the audit event so the customer can attribute connector activity to specific users — this record lands in the customer's own Log Analytics workspace, not Expecta's.
-- **First-admin seeding** — at install time the customer admin provides an email address. The installer resolves the email to a Microsoft Entra Object ID via Microsoft Graph and writes one row into the customer's configuration database. This data never leaves the customer's tenant.
+- **First-admin seeding** — after the install, the customer administrator who runs the finish-setup script becomes the connector's first administrator. The script records that person's Microsoft Entra Object ID as a tag on the managed application, and the connector writes it into the customer's configuration database. No email address is collected. This data never leaves the customer's tenant.
 
 The connector does not transmit any user identifier, email, or query content to Expecta-controlled servers under any circumstance.
 
@@ -59,7 +59,7 @@ The Managed Application installs all of its resources into the Azure region the 
 
 ## Cookies, web tracking, and the Connector
 
-The Marketplace listing pages on `azuremarketplace.microsoft.com` use cookies governed by Microsoft's privacy policy, not Expecta's. The Connector's own admin web UI (`/admin`) served from a customer's installed instance sets one session cookie for the admin login flow only — it lives entirely in the customer's tenant. No trackers, advertising pixels or analytics scripts are present in any Expecta-served code.
+The Marketplace listing pages on `azuremarketplace.microsoft.com` use cookies governed by Microsoft's privacy policy, not Expecta's. The Connector's own browser pages (the `/admin` web UI and dashboard links) served from a customer's installed instance set two first-party cookies, both HTTP-only and secure: a signed sign-in cookie holding the user's email address, tenant ID and Entra Object ID, so the pages know who is signed in; and a one-time cookie, valid for at most ten minutes, that ties a sign-in to the browser that started it. They are set by the customer's own connector and live entirely in the customer's tenant. No trackers, advertising pixels or analytics scripts are present in any Expecta-served code.
 
 One third-party request is worth naming, and it is confined to a single place: the **browser-based administration pages** (`/admin`) load their web fonts from Google's font service, so a browser opening those pages makes a request to Google and Google sees its IP address. Google receives nothing else — no query, no figure, no identity. **The dashboards rendered inside your assistant do not make this request**, and everything else the interface needs — charts, tables, scripts — is served by the connector itself. We will serve the fonts locally on request.
 

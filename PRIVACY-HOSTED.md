@@ -67,6 +67,7 @@ The connector processes personal data only to identify and authorise the person 
 - **Authentication** — the calling user's Entra ID token is verified per request to confirm they belong to an enabled organisation.
 - **Attribution** — the user's object identifier is written to the audit record so activity can be traced to a person; application log lines can also contain their work email address. Both age out with the 30-day retention.
 - **Administrator seeding** — when your organisation is set up, an administrator's email address is recorded so the admin interface can recognise them.
+- **Browser sign-in cookies** — the connector's own browser pages (dashboard links and the admin interface) set two first-party, HTTP-only, secure cookies: a signed sign-in cookie holding the user's email address, tenant identifier and Entra object identifier, so the pages know who is signed in; and a one-time cookie, valid for at most ten minutes, that ties a sign-in to the browser that started it. No tracking or advertising cookies are used.
 
 No question text, report content or figure is transmitted to any Expecta-controlled endpoint beyond the service itself, and none of it is used to train any model.
 
