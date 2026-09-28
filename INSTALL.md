@@ -63,9 +63,9 @@ Ongoing Azure cost for a single-user install is approximately **$25–40/month**
 
 Open the managed application in the Azure Portal. Its **Overview** page explains the step, and its **Outputs** contain the command, `finishSetupCommand`.
 
-1. The person described in the prerequisites (Cloud Application Administrator + Owner on the resource group) opens **Azure Cloud Shell (PowerShell)** and runs that command.
+1. The person described in the prerequisites (Cloud Application Administrator + Owner on the resource group) opens **Azure Cloud Shell (PowerShell)** and runs that command. The command downloads the script from your connector and checks its SHA-256 against the value fixed in the install before running it. If the check fails, it deletes the download and stops without running anything.
 2. The script, running with that person's own rights in your tenant:
-   - creates the connector's app registration (sign-in, callback addresses, the `access_as_user` scope, Power BI read permissions);
+   - creates the connector's app registration (sign-in, callback addresses, the `access_as_user` scope, Power BI read permissions, and Microsoft Graph *read all users' basic profiles*, used only to add another connector administrator by email);
    - attaches the connector's public certificate — the private key never leaves your Key Vault;
    - grants consent for those delegated permissions;
    - tags the managed application with the app's ID and your object ID, and gives the connector read access to those tags.

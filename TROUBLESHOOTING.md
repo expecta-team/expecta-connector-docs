@@ -26,7 +26,7 @@ Fix: allow outbound HTTPS to `mcr.microsoft.com` and `expectaregistry.azurecr.io
 
 ### The finish-setup command fails with "Insufficient privileges" or 403
 
-The person running it needs **Cloud Application Administrator** (or Application Administrator / Global Administrator) in Microsoft Entra ID **and** **Owner or User Access Administrator** on the resource group that holds the managed application. The first covers creating the app registration and granting consent; the second covers tagging the managed application and giving the connector read access to those tags. Have a person with both run it, or run it once with the missing role added. The script is safe to re-run.
+The person running it needs **Cloud Application Administrator** (or Application Administrator / Global Administrator) in Microsoft Entra ID **and** **Owner** (or **Contributor** plus **User Access Administrator**; User Access Administrator alone can't write the tags) on the resource group that holds the managed application. The first covers creating the app registration and granting consent; the second covers tagging the managed application and giving the connector read access to those tags. Have a person with both run it, or run it once with the missing role added. The script is safe to re-run.
 
 ### Sign-in still doesn't work a few minutes after finish-setup
 

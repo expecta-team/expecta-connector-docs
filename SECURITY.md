@@ -86,6 +86,7 @@ Several aspects of the security posture are independently verifiable from your s
 - **Entra app credentials.** Look at the connector's app registration in the Entra ID portal → "Certificates & secrets" → only a `keyCredential` (cert), no `passwordCredentials`.
 - **Audit log content.** Open your Log Analytics workspace and look at the connector's container logs. Everything listed above is there in full, in your storage, owned by you. Ask us if you would like ready-made queries for your reporting or SIEM tooling.
 - **Container image provenance.** The Container App's image reference points at your own registry (`<your-acr>.azurecr.io/expecta-mcp`, by digest after the first update), not at Expecta's registry.
+- **Setup script integrity.** The finish-setup command in the managed application's Outputs names the script by its SHA-256 and refuses to run a download that doesn't match. You can check the hash yourself before running it: download the URL from the command and run `Get-FileHash -Algorithm SHA256` on it.
 - **Update history.** Every nightly update run records its outcome — up to date, updated from one image digest to another, or rolled back — in your Log Analytics workspace.
 
 For deeper questions on threat model or compliance posture, contact Expecta engineering (see [Support](./SUPPORT.md)).
