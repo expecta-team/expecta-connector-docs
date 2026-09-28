@@ -11,18 +11,19 @@ The install gives you an auto-generated Container Apps FQDN — something like `
 3. **TLS certificate** — either upload your own PFX to the Container Apps managed cert store, or let Azure-managed certs issue one (free, Let's Encrypt-backed, auto-renewing).
 4. **Hostname binding** — in the Container App, "Custom domains" → "Add custom domain" → bind `mcp.acme.com` to the cert.
 
-If you supplied the custom domain in the install wizard's optional step 4, the connector's OAuth app registration is already set up to accept callbacks on both the auto-FQDN and your custom domain — no further OAuth changes needed.
+If you supplied the custom domain in the install wizard, the finish-setup script already registered sign-in callbacks for both the auto-FQDN and your custom domain — no further changes needed.
 
 If you did *not* supply it at install time, you'll need to add the OAuth callback URIs manually in the Entra ID portal: navigate to the connector's app registration, "Authentication" → "Add a platform" → "Web" → enter `https://mcp.acme.com/oauth/callback` and `https://mcp.acme.com/dashboard/callback`.
 
 ## Certificate rotation
 
-The OAuth client certificate generated at install time is valid for 3 years. Approaching renewal:
+The OAuth client certificate generated in your Key Vault at install time is valid for 3 years. Day-to-day you don't need to do anything. Microsoft notifies the app registration's owners when a credential is close to expiry.
 
-1. The deployment script that originally created the cert (`create-oauth-cert.ps1`) is idempotent and supports rotation. Re-running it against the same install will generate a new cert, attach it to the Entra app registration's `keyCredentials` (alongside the old one), and store the new private key in Key Vault.
-2. After the new cert is verified working (connector continues to authenticate successfully), remove the old `keyCredential` entry from the Entra app registration to close out the rotation.
+Renewal is not automatic yet. Before the certificate expires, contact Expecta and we will renew it with you:
 
-Day-to-day: you don't need to do anything until the 3-year mark approaches. Microsoft will email the tenant admin associated with the app registration when expiration is imminent.
+1. A new certificate is issued in your Key Vault (the private key never leaves it).
+2. Your administrator re-runs the finish-setup command from the managed application's Outputs. The script adds the new public certificate to the app registration **next to** the old one, so sign-in keeps working throughout.
+3. Once the connector is confirmed signing in with the new certificate, the old entry is removed from the app registration's *Certificates & secrets*.
 
 ## Scaling
 
@@ -35,13 +36,19 @@ The Container App is configured to scale **to zero** between requests in the Con
 
 ## Updates
 
-When Expecta publishes a new connector version, the Marketplace offer surface shows an "Update available" indicator on the Managed Application resource. To apply:
+**New connector versions install themselves.** A Container Apps job in the managed resource group runs every night at 02:00 UTC:
 
-1. Resource → "Update" → review the version notes and pricing impact (typically none).
-2. Click "Update". The install template re-runs against the new image SHA: `az acr import` pulls the new image into your ACR, the Container App revision flips, and your configuration is preserved (config DB, KV, audit history all untouched).
-3. The update takes ~3–5 minutes; in-flight requests will see a brief 503 during the revision flip.
+1. It compares the connector image you are running with the latest one Expecta has published. If they are the same, it stops there.
+2. If there is a new version, it copies the image into your own registry and starts a new revision of the connector on it (pinned by image digest).
+3. It waits for the new revision to be ready and healthy. If it is not, it moves the connector back to the previous image.
 
-Major version bumps may include backward-incompatible schema changes; the release notes will call these out explicitly and the update template handles the migration idempotently. If anything goes wrong during the update, Container Apps' built-in revision history lets you roll back to the previous revision instantly.
+An update takes a few minutes; requests in flight during the switch may see a brief error and succeed on retry. Your configuration, secrets and audit history are untouched.
+
+**Checking what happened.** Each run writes one line to your Log Analytics workspace: `up to date`, `updated <old digest> -> <new digest>`, or `rolled back`. Search the job's console logs for `nightly-update`.
+
+**Holding updates.** If you need a freeze (for example during a quarter-end close), tell Expecta and we will pause updates for your install until you say so.
+
+Changes to the install's Azure resources themselves (a new plan version of the offer) still arrive as an "Update available" on the Managed Application resource, which you apply from the portal.
 
 ## Backup and disaster recovery
 
@@ -61,6 +68,8 @@ The "Metrics" tab in the Managed Application blade shows the headline numbers:
 - **Request count** — how many MCP calls land at the connector.
 - **CPU and memory utilisation** — for capacity planning.
 - **Replica count** — should be 1 in the default config.
+
+The nightly update job's runs are listed under the job in the managed resource group, and its outcome lines are in your Log Analytics workspace (see [Updates](#updates)).
 
 For anything deeper, your Log Analytics workspace holds the connector's own audit records — every question asked, by whom, against which report, and whether it succeeded. That is where to look for usage patterns over time, which questions are failing, or the history behind a particular support reference number.
 
