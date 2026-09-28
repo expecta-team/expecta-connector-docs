@@ -38,12 +38,6 @@ Audit events (tool invocations, OAuth handshakes, DAX queries) need a Log Analyt
 
 Only users from the tenants you list here can sign in to the connector. Default: your own tenant only — deny-by-default for everyone else. Add comma-separated tenant GUIDs if you want to extend access (e.g. for managed-service-provider scenarios where one operator administers connectors across multiple end-customer tenants).
 
-### Custom domain (optional)
-
-If you plan to expose the connector on a custom hostname (e.g. `mcp.acme.com`) instead of the auto-generated `<resourceName>.<region>.azurecontainerapps.io`, type the FQDN here. Its sign-in callback addresses are then included when the app registration is created in the post-install step, so once you bind the custom domain to the Container App (see [Operations](./OPERATIONS.md)), sign-in works on both hostnames without further changes.
-
-The custom-domain DNS, TLS certificate, and Container Apps domain binding are separate steps — the wizard only prepares the sign-in side.
-
 ## What gets created in your subscription
 
 Inside the managed resource group, the install provisions:

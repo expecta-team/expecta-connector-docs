@@ -4,16 +4,12 @@ Day-2 runbook for keeping a Managed Application install healthy.
 
 ## Custom domain (optional)
 
-The install gives you an auto-generated Container Apps FQDN — something like `acme-mcp-abc123.italynorth.azurecontainerapps.io`. If you want a friendlier name (e.g. `mcp.acme.com`), bind a custom domain after install:
+The install gives you an auto-generated address, something like `acme-mcp-abc123.italynorth.azurecontainerapps.io`. If you'd rather use your own name (e.g. `mcp.acme.com`), Expecta sets it up with you after the install. You can't bind it yourself: the managed resource group is locked against changes by anyone but the publisher, which is how a managed application works.
 
-1. **DNS** — create a CNAME from `mcp.acme.com` to the auto-FQDN.
-2. **Domain ownership** — add a TXT record `asuid.mcp` with the verification value from the Container App's "Custom domains" blade.
-3. **TLS certificate** — either upload your own PFX to the Container Apps managed cert store, or let Azure-managed certs issue one (free, Let's Encrypt-backed, auto-renewing).
-4. **Hostname binding** — in the Container App, "Custom domains" → "Add custom domain" → bind `mcp.acme.com` to the cert.
-
-If you supplied the custom domain in the install wizard, the finish-setup script already registered sign-in callbacks for both the auto-FQDN and your custom domain — no further changes needed.
-
-If you did *not* supply it at install time, you'll need to add the OAuth callback URIs manually in the Entra ID portal: navigate to the connector's app registration, "Authentication" → "Add a platform" → "Web" → enter `https://mcp.acme.com/oauth/callback` and `https://mcp.acme.com/dashboard/callback`.
+1. **Your DNS.** Create a CNAME from `mcp.acme.com` to the auto-generated address, and a TXT record `asuid.mcp` holding the Container App's domain verification ID. You can read the ID yourself: the Container App's **Custom domains** page, or `az containerapp show --name <app> --resource-group <managed RG> --query properties.customDomainVerificationId -o tsv`.
+2. **Tell Expecta** the name. Through the publisher's management access to the managed resource group, we add the domain to the Container App with a free Azure-managed certificate (issued and renewed automatically), and point the connector's sign-in at the new address.
+3. **Your app registration.** An administrator adds the two sign-in addresses to the connector's app registration in Microsoft Entra ID (**App registrations** → *Expecta Connector (…)* → **Authentication** → **Web** redirect URIs): `https://mcp.acme.com/oauth/callback` and `https://mcp.acme.com/dashboard/callback`. The app registration is yours, in your tenant, so Expecta can't do this step.
+4. **Reconnect your AI assistants** with the new URL, `https://mcp.acme.com/mcp`. Sign-in answers on one address at a time, so the old one stops working for sign-in once the switch is made.
 
 ## Certificate rotation
 
